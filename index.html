@@ -1,19 +1,59 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
 
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>"certificate-error" event handler does not work for webview</title>
+</head>
+
+<body>
+  <h1>"certificate-error" event handler does not work for webview</h1>
+  <!-- All of the Node.js APIs are available in this renderer process. -->
+  We are using Node.js
+  <script>document.write(process.versions.node)</script>,
+  Chromium
+  <script>document.write(process.versions.chrome)</script>,
+  and Electron
+  <script>document.write(process.versions.electron)</script>.
+
+  <div>    
+    <p>Please use dev tools to monitor the network traffic. </p>
+    <p>
+      After application starts, if you click "Send a request from main window" first, then click "Send a request from webview", everything works
+      fine. Looks like the invalid cert has been cached by the main window.       
+    </p>
+    <p>
+      After application starts, if you click "Send a request from webview" first then it just fails... once you click the "Send a request from main window" then all following requests start working. 
+    </p>
+  </div>
+  <div>
+    <button id="tryRequest">Send a request from main window</button>
+  </div>
+  <div>
+    <webview nodeintegration src="./xhr.html" style="display:inline-flex; width:640px; height:480px"></webview>
+  </div>
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+    let $ = require("./jquery.js");
+
+    $("#tryRequest").click(() => {
+      $.get("https://self-signed.badssl.com/");
+    });
+
+    onload = () => {
+      const webview = document.querySelector('webview')
+      webview.addEventListener('dom-ready', function () {
+        webview.openDevTools();
+
+        webview.getWebContents().on("certificate-error", (event, url, error, certificate, callback) => {
+          console.log("certificate-error from web view", url, error, callback);
+          event.preventDefault();
+          callback(true);
+        });
+      });
+    }
+  </script>
+</body>
+
 </html>

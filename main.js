@@ -1,13 +1,13 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const { app, BrowserWindow } = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-function createWindow () {
+function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({ width: 800, height: 600 })
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
@@ -22,6 +22,14 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  mainWindow.webContents.on("certificate-error", (event, url, error, certificate, callback) => {
+    console.log("certificate-error from mainWindow", url, error, callback);
+    event.preventDefault();
+    callback(true);
+  });
+
+  mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished
